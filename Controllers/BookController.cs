@@ -69,6 +69,19 @@ namespace LibraryManagementSystem.Controllers
             }
         }
 
+        [HttpGet("GetBookByID")]
+        public async Task<IActionResult>GetById(Guid id)
+        {
+            try
+            {
+                var res = await _context.GetBookbyId(id);
+                return Ok(res);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("GetBookByAuthor")]
         public async Task<IActionResult> GetBookByAuthor(string name)
         {

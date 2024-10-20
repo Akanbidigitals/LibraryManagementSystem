@@ -10,9 +10,12 @@ namespace LibraryManagementSystem.DataAccess.Repository
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationContext _ctx;
-        public UserRepository(ApplicationContext ctx)
+        private readonly ILogger<UserRepository> _logger;
+        public UserRepository(ApplicationContext ctx, ILogger<UserRepository> logger)
         {
             _ctx = ctx;
+            _logger = logger;
+
         }
         public async Task<ResponseDetail<string>> AddUser(AddUserDTO userDTO)
         {
@@ -30,9 +33,12 @@ namespace LibraryManagementSystem.DataAccess.Repository
 
                 await _ctx.Users.AddAsync(user);
                 await _ctx.SaveChangesAsync();
+                _logger.LogInformation("User Added sucessfully");
                 response = response.SuccessResultData("User Added Successfully", 200);
+
             }catch(Exception ex)
             {
+                _logger.LogError(message: "Error Adding new user");
                 response = response.FailedResultData(ex.Message);
             }
             return response;
@@ -46,13 +52,16 @@ namespace LibraryManagementSystem.DataAccess.Repository
                 var deleteuser = await _ctx.Users.FirstOrDefaultAsync( x=> x.Id == Id);
                 if(deleteuser == null)
                 {
+                    _logger.LogError(message: "User id does not exist");
                     response = response.FailedResultData("User does not exist", 404);
                 }
                _ctx.Remove(deleteuser!);
                 await _ctx.SaveChangesAsync();
+                _logger.LogInformation("User deleted sucessfully");
                 response = response.SuccessResultData("User deleted successfully");
             }catch(Exception ex)
             {
+                _logger.LogError(message: "Error Deleting  user");
                 response = response.FailedResultData(ex.Message);
             }
             return response;
@@ -63,10 +72,12 @@ namespace LibraryManagementSystem.DataAccess.Repository
             try
             {
                 var getall = await _ctx.Users.ToListAsync();
+                _logger.LogInformation("User deleted sucessfully");
                 return getall;
             }
             catch
             {
+                _logger.LogError(message: "Error getting all user");
                 throw;
             }
         }
@@ -79,12 +90,15 @@ namespace LibraryManagementSystem.DataAccess.Repository
                 var getuser = await _ctx.Users.FirstOrDefaultAsync(x => x.Id == Id);
                 if(getuser == null)
                 {
+                    _logger.LogError(message: "User id does not exist");
                     response = response.FailedResultData("User does not exist");
                 }
+                _logger.LogInformation("User sucessfully gotten");
                 response = response.SuccessResultData($"{getuser}", 200);
             }
             catch(Exception ex)
             {
+                _logger.LogError(message: "Error getting user by Id");
                 response = response.FailedResultData(ex.Message);
             }
             return response;
@@ -96,12 +110,13 @@ namespace LibraryManagementSystem.DataAccess.Repository
             try
             {
                 var updateUser = await _ctx.Users.FirstOrDefaultAsync(x => x.Id == userDTO.Id);
-                if(updateUser == null)
+                if(updateUser.Id == null)
                 {
+                    _logger.LogError(message: "User id does not exist");
                     response = response.FailedResultData("User does not exist");
 
                 }
-               updateUser.Id = userDTO.Id;
+                updateUser.Id = userDTO.Id;
                 updateUser.FirstName = userDTO.FirstName ?? updateUser.FirstName;
                 updateUser.LasttName = userDTO.LasttName ?? updateUser.LasttName;
                 updateUser.Email = userDTO.Email ?? updateUser.Email;
@@ -110,10 +125,12 @@ namespace LibraryManagementSystem.DataAccess.Repository
 
                 _ctx.Users.Update(updateUser);
                 await _ctx.SaveChangesAsync();
+                _logger.LogInformation("User updated successfully");
                 response = response.SuccessResultData("User updated successfully", 200);
 
             }catch( Exception ex )
             {
+                _logger.LogError(message: "Error updating user");
                 response = response.FailedResultData(ex.Message);
 
             }
@@ -129,7 +146,7 @@ namespace LibraryManagementSystem.DataAccess.Repository
             }
             else
             {
-                return $"Memb-{user.Count}++";
+                return $"Memb-{user.Count}";
 
             }
 

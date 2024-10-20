@@ -10,9 +10,12 @@ namespace LibraryManagementSystem.DataAccess.Repository
     public class TransactionRepository : ITransactionRepository
     {
         private readonly ApplicationContext _ctx;
-        public TransactionRepository(ApplicationContext ctx)
+        private readonly ILogger<TransactionRepository> _logger;
+        public TransactionRepository(ApplicationContext ctx, ILogger<TransactionRepository> logger)
         {
-            _ctx= ctx;
+            _ctx = ctx;
+            _logger = logger;
+
         }
         public async Task<ResponseDetail<string>> BorrowBook(BorrowBookDTO book)
         {
@@ -22,13 +25,15 @@ namespace LibraryManagementSystem.DataAccess.Repository
                 var borrowbook = await _ctx.Books.FirstOrDefaultAsync(x => x.Id == book.BookId);
                 var user = await _ctx.Users.FirstOrDefaultAsync(x => x.Id == book.UserId);
                 
-                if(borrowbook == null && user == null) 
+                if(borrowbook == null || user == null) 
                 {
+                   _logger.LogError(message: "Book or user Id is invalid");
                     response = response.FailedResultData("Book or User does not exist,try again", 404);
 
                 }
                 else if (borrowbook.IsAvailable == false)
                 {
+                    _logger.LogError(message: "Book has already been borrowed");
                     response = response.FailedResultData("the book has been borrowed pls check back later", 404);
                 }
                 else
@@ -39,21 +44,22 @@ namespace LibraryManagementSystem.DataAccess.Repository
                         BookId = book.BookId,
                         BorrowedDate = DateTime.UtcNow,
                         ExpectedReturnedDate = DateTime.UtcNow.AddDays(14),
-                        Status = "Book Borrored",
+                        Status = "Book Borrowed",
                         
                     };
                     _ctx.Transactions.Add(booktxn);
-                    await _ctx.SaveChangesAsync();
                     
                     //Update Book availability in Book Db
                     borrowbook.IsAvailable = false;
                     _ctx.Books.Update(borrowbook);
                     await _ctx.SaveChangesAsync();
-                    response = response.SuccessResultData("You have successfully borrowed succeessfully", 202);
+                   _logger.LogInformation("Book borrowed successfully");
+                    response = response.SuccessResultData("You have successfully borrowed succeessfully", 200);
                 }
 
             }catch(Exception ex)
             {
+                _logger.LogError(message: "Error trying to borrow book");
                 response = response.FailedResultData(ex.Message);
             }
             return response;
@@ -67,6 +73,7 @@ namespace LibraryManagementSystem.DataAccess.Repository
                 var checktxnId = await _ctx.Transactions.FirstOrDefaultAsync(x=> x.Id == txnId);
                 if (checktxnId == null)
                 {
+                   _logger.LogError(message: "Txn id is invalid");
                     response = response.FailedResultData("Txn Id does not exist", 404);
 
                 }
@@ -76,18 +83,21 @@ namespace LibraryManagementSystem.DataAccess.Repository
 
                     checktxnId.Id = txnId;
                     checktxnId.ReturnDate = DateTime.UtcNow;
-                    checktxnId.Status = "Book Retuned";
+                    checktxnId.Status = "Book Returned";
 
                     book.IsAvailable = true;
                     _ctx.Transactions.Update(checktxnId);
 
                     _ctx.Books.Update(book);
                   await  _ctx.SaveChangesAsync();
-
+                    _logger.LogInformation("Book borrowed successfully");
+                    response = response.SuccessResultData("Book returned successfully",200);
                 }
 
-            }catch(Exception ex)
+            }
+            catch(Exception ex)
             {
+                _logger.LogError(message: "Error trying to return book");
                 response = response.FailedResultData(ex.Message);
             }
             return response;

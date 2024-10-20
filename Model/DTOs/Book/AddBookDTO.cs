@@ -8,6 +8,6 @@
         public string Genre { get; set; }
         public string Price { get; set; }
 
-        public bool IsAvailable { get; set; } = true;
+        
     }
 }

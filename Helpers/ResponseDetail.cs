@@ -70,8 +70,8 @@
         {
             var k = new ResponseDetail<T>
             {
-                Message = "Operation was not successful" ,
-                IsSuccessfull = false ,
+                Message = "Operation was successful" ,
+                IsSuccessfull = true ,
                 Result = res,
                 StatusCode = 400
             };
@@ -83,7 +83,7 @@
             var k = new ResponseDetail<T>
             {
                 Message = message,
-                IsSuccessfull = false,
+                IsSuccessfull = true,
                 Result = res,
                 StatusCode = 400
             };
@@ -95,7 +95,7 @@
             var k = new ResponseDetail<T>
             {
                 Message = message,
-                IsSuccessfull = false,
+                IsSuccessfull = true,
                 Result = res,
                 StatusCode = code
             };
@@ -107,7 +107,7 @@
             var k = new ResponseDetail<T>
             {
                 Message = message,
-                IsSuccessfull = false,
+                IsSuccessfull = true,
                 StatusCode = code
             };
             return k;
@@ -118,7 +118,7 @@
             var k = new ResponseDetail<T>
             {
                 Message = message,
-                IsSuccessfull = false,
+                IsSuccessfull = true,
                 
             };
             return k;

@@ -51,7 +51,7 @@ namespace LibraryManagementSystem.Controllers
             }
         } 
         
-        [HttpGet("DeleteUserById")]
+        [HttpDelete("DeleteUserById")]
         public async Task<IActionResult> DeleteUser(Guid Id)
         {
             try
