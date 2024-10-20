@@ -58,19 +58,66 @@ namespace LibraryManagementSystem.DataAccess.Repository
             return response;
         }
 
-        public Task<List<User>> GetAllUser()
+        public async Task<List<User>> GetAllUser()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var getall = await _ctx.Users.ToListAsync();
+                return getall;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
-        public Task<ResponseDetail<string>> GetUserById(Guid Id)
+        public async Task<ResponseDetail<string>> GetUserById(Guid Id)
         {
-            throw new NotImplementedException();
+            var response = new ResponseDetail<string>();
+            try
+            {
+                var getuser = await _ctx.Users.FirstOrDefaultAsync(x => x.Id == Id);
+                if(getuser == null)
+                {
+                    response = response.FailedResultData("User does not exist");
+                }
+                response = response.SuccessResultData($"{getuser}", 200);
+            }
+            catch(Exception ex)
+            {
+                response = response.FailedResultData(ex.Message);
+            }
+            return response;
         }
 
-        public Task<ResponseDetail<string>> UpdateUser(UpdateUserDTO userDTO)
+        public async Task<ResponseDetail<string>> UpdateUser(UpdateUserDTO userDTO)
         {
-            throw new NotImplementedException();
+            var response = new ResponseDetail<string>();
+            try
+            {
+                var updateUser = await _ctx.Users.FirstOrDefaultAsync(x => x.Id == userDTO.Id);
+                if(updateUser == null)
+                {
+                    response = response.FailedResultData("User does not exist");
+
+                }
+               updateUser.Id = userDTO.Id;
+                updateUser.FirstName = userDTO.FirstName ?? updateUser.FirstName;
+                updateUser.LasttName = userDTO.LasttName ?? updateUser.LasttName;
+                updateUser.Email = userDTO.Email ?? updateUser.Email;
+                updateUser.PhoneNumber = userDTO.PhoneNumber ?? updateUser.PhoneNumber;
+                updateUser.MemebershipCode = updateUser.MemebershipCode;
+
+                _ctx.Users.Update(updateUser);
+                await _ctx.SaveChangesAsync();
+                response = response.SuccessResultData("User updated successfully", 200);
+
+            }catch( Exception ex )
+            {
+                response = response.FailedResultData(ex.Message);
+
+            }
+            return response;
         }
 
         private  string GenerateMemebrshipcode()
